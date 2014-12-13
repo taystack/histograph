@@ -1,0 +1,11 @@
+body {
+  background: #2d2d2d;
+  color: #fff;
+  text-align: center;
+  font-family: sans-serif;
+}
+
+ul {
+  text-align: left;
+  list-style-type: none;
+}
