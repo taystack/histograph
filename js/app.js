@@ -1,108 +1,269 @@
-angular.module("Histograph", [])
-.controller("MainCtrl", function($scope, $timeout) {
+var histograph = angular.module("Histograph", []);
+
+// app.config(function($routeProvider, $locationProvider) {
+//   $routeProvider
+//   .when('/', {
+//     templateUrl: "tab.html",
+//     controller:'MainCtrl',
+//   });
+  // .when('/about/', {
+  //   templateUrl: "templates/about.html",
+  //   controller: 'aboutController',
+  // })
+  // .otherwise({
+  //   template: 'does not exists'
+  // });
+// });
+
+histograph.controller("MainCtrl", function($scope, $timeout) {
 
   // Build the history object
-  $scope.data = {colors: Array()};
+  $scope.data = {
+    colors: Array(),
+    hashes: Array(),
+    visitTotal: 0,
+    lookupId: {},
+    lookupUrl: {},
+    lookupParent: {},
+    place: 0
+  };
 
-  function hashCode(str) {
-    var hash = 0;
-    for (var i = 0; i < str.length; i++) {
-       hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  var tmpColorsCompliment = {
+    "#0A268A": {
+      place: 0,
+      items: [
+        "#7BE926",
+        "#63E500",
+        "#3D8C00",
+        "#2C6400"
+      ]
+    },
+    "#CC8E00": {
+      place: 0,
+      items: [
+        "#3352C2",
+        "#0D31B4",
+        "#091E6B",
+        "#08164D"
+      ]
+    },
+    "#B70034": {
+      place: 0,
+      items: [
+        "#FFBE2A",
+        "#FFB100",
+        "#9E6E00",
+        "#714F00"
+      ]
+    },
+    "#4EB500": {
+      place: 0,
+      items: [
+        "#EC275F",
+        "#E80042",
+        "#8E0029",
+        "#66001D"
+      ]
+    },
+    "#CCC900": {
+      place: 0,
+      items: [
+        "#FFFC2A",
+        "#FFFC00",
+        "#9E9C00",
+        "#717000"
+      ]
+    },
+    "#008A56": {
+      place: 0,
+      items: [
+        "#20C184",
+        "#00B470",
+        "#006B42",
+        "#004C30"
+      ]
+    },
+    "#CC3F00": {
+      place: 0,
+      items: [
+        "#FF6C2A",
+        "#FF4F00",
+        "#9E3100",
+        "#712300"
+      ]
+    },
+    "#550588": {
+      place: 0,
+      items: [
+        "#8529C0",
+        "#6F06B2",
+        "#42046A",
+        "#30044C"
+      ]
     }
-    return "#" + intToARGB(hash);
-  }
+  };
 
-  function intToARGB(i){
-      return ((i>>24)&0xFF).toString(16) +
-             ((i>>16)&0xFF).toString(16) +
-             ((i>>8)&0xFF).toString(16) +
-             (i&0xFF).toString(16);
+  var tmpColors = ["#0A268A", "#CC8E00", "#B70034", "#4EB500", "#CCC900", "#008A56", "#CC3F00", "#550588"];
+
+  var getColor = function() {
+    if ($scope.data.place === tmpColors.length) {
+      $scope.data.place = 0;
+    }
+    var color = tmpColors[$scope.data.place];
+    $scope.data.place += 1;
+    return color;
+  }
+  var getCompliment = function(color) {
+    if (tmpColorsCompliment[color].place === tmpColorsCompliment[color].items.length) {
+      tmpColorsCompliment[color].place = 0;
+    }
+    return tmpColorsCompliment[color].items[tmpColorsCompliment[color].place];
   }
 
   var getHostname = function(url) {
     var tmp = document.createElement("a")
     tmp.href = url;
-    if (!$scope.data.colors[tmp.hostname]) {
-      $scope.data.colors[tmp.hostname] = hashCode(tmp.hostname);
-    }
     return tmp.hostname;
   }
 
-  var getColor = function(name) {
-    return $scope.data.colors[name];
+  var buildGraphData = function() {
+
+    for (var x = 0; x < Object.keys($scope.data.items).length; x++) {
+      var name = getHostname($scope.data.items[x].url)
+      if ($scope.data.lookupUrl[name]) {
+
+        // Append the item to the new entry's items list.
+        $scope.data.lookupUrl[name].items[$scope.data.items[x].id] = $scope.data.items[x];
+        // $scope.data.hashes[name].items[$scope.data.items[x].id] = $scope.data.items[x];
+
+        // Generate the lookup parent by id. => $scope.data.lookupParent[id] = hist obj
+        $scope.data.lookupParent[$scope.data.items[x].id] = $scope.data.lookupUrl[name];
+
+        // Sum the parent's visitCount with the child's visitCount.
+        $scope.data.lookupUrl[name].visitCount += $scope.data.items[x].visitCount;
+      } else {
+
+        // Create the parent entry for this uri.
+        // Set the parent's color.
+        // Set the parent's visitCount to the child's visitCount.
+        var obj = {
+          color: getColor(),
+          name: name,
+          items: [$scope.data.items[x]],
+          visitCount: $scope.data.items[x].visitCount,
+          lastVisitTime: $scope.data.items[x].lastVisitTime
+        }
+
+        $scope.data.hashes.push(obj);
+
+        // Generate the lookup by id. => $scope.data.lookup[id] = hist obj
+        $scope.data.lookupId[$scope.data.items[x].id] = $scope.data.items[x];
+
+        // Generate the lookup parent by id. => $scope.data.lookupParent[id] = hist obj
+        $scope.data.lookupParent[$scope.data.items[x].id] = obj;
+
+        // Generate the lookup by url. => $scope.data.lookup[url] = hist obj
+        $scope.data.lookupUrl[name] = obj;
+      }
+    }
+    for (var x = 0; x < Object.keys($scope.data.hashes).length; x++) {
+      $scope.data.visitTotal += $scope.data.hashes[Object.keys($scope.data.hashes)[x]].visitCount;
+    }
   }
 
   var buildGraph = function() {
 
-    var width = 400,
-        height = 400,
-        radius = Math.min(width, height) / 2;
+    var innerWidth = 600,
+        innerHeight = 600,
+        innerRadius = Math.min(innerWidth, innerHeight) / 2;
+        outerWidth = 600,
+        outerHeight = 600,
+        outerRadius = Math.min(innerWidth, innerHeight) / 2;
 
-    var colors = d3.scale.ordinal().range($scope.data.items.map(
-      function(val) {
-        return $scope.data.colors[getHostname(val.url)];
-      }));
-
-    var pie = d3.layout.pie()
-      .value(function(val) {return val.id})
+    var innerPie = d3.layout.pie()
+      .value(function(val, idx) {
+        return val.visitCount;
+      })
+      .startAngle(1.1*Math.PI)
+      .endAngle(3.1*Math.PI)
       .sort(function(a, b) {
-        return getHostname(b) < getHostname(a) ? -1 : getHostname(b) > getHostname(a) ? 1 : getHostname(b) >= getHostname(a) ? 0 : NaN;
+        var lookA = a.lastVisitTime;
+        var lookB = b.lastVisitTime;
+        return lookB < lookA ? -1 : lookB > lookA ? 1 : lookB >= lookA ? 0 : NaN;
       });
 
-    var arc = d3.svg.arc()
-      .innerRadius(radius - 100)
-      .outerRadius(radius - 50);
-
-    var svg = d3.select("#histograph").append("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .append("g")
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
-    var path = svg.selectAll("path")
-      .data(pie($scope.data.items))
-      .enter().append("path")
-      .attr("fill", function(d, i) {
-        console.log("$scope.data.colors[" + getHostname(d.data.url)+ "]", $scope.data.colors[getHostname(d.data.url)].slice(0, 7));
-        return $scope.data.colors[getHostname(d.data.url)].slice(0, 7);
+    var outerPie = d3.layout.pie()
+      .value(function(val) {
+        return val.visitCount;
       })
-      .attr("d", arc);
+      .startAngle(1.1*Math.PI)
+      .endAngle(3.1*Math.PI)
+      .sort(function(a, b) {
+        var lookA = $scope.data.lookupParent[a.id].lastVisitTime;
+        var lookB = $scope.data.lookupParent[b.id].lastVisitTime;
+        return (lookB) < lookA ? -1 : (lookB) > lookA ? 1 : (lookB) >= lookA ? 0 : NaN;
+      });
 
+    var innerArc = d3.svg.arc()
+      .innerRadius(innerRadius - 180)
+      .outerRadius(innerRadius - 140);
+
+    var outerArc = d3.svg.arc()
+      .innerRadius(outerRadius - 140)
+      .outerRadius(outerRadius - 100);
+
+    var innerSvg = d3.select("#histograph").append("svg")
+      .attr("width", innerWidth)
+      .attr("height", innerHeight)
+      .append("g")
+      .attr("transform", "translate(" + innerWidth / 2 + "," + innerHeight / 2 + ")");
+
+    var outerSvg = d3.select("#histograph").append("svg")
+      .attr("width", outerWidth)
+      .attr("height", outerHeight)
+      .append("g")
+      .attr("transform", "translate(" + outerWidth / 2 + "," + outerHeight / 2 + ")");
+
+    var innerPath = innerSvg.selectAll("path")
+      .data(innerPie($scope.data.hashes))
+      .enter().append("path")
+      .attr("class", function(d) {return d.data.name;})
+      .attr("fill", function(d) {return d.data.color;})
+      .transition().delay(function(d, i) { return i * 100; }).duration(1000)
+      .attrTween('d', function(d) {
+           var i = d3.interpolate(d.startAngle+0.1, d.endAngle);
+           return function(t) {
+               d.endAngle = i(t);
+             return innerArc(d);
+           }
+      });
+
+    var outerPath = outerSvg.selectAll("path")
+      .data(outerPie($scope.data.items))
+      .enter().append("path")
+      .attr("class", function(d) {return getHostname(d.data.url);})
+      .attr("fill", function(d) {return getCompliment($scope.data.lookupUrl[getHostname(d.data.url)].color);})
+      .transition().delay(function(d, i) { return i * 20; }).duration(1000)
+      .attrTween('d', function(d) {
+        var i = d3.interpolate(d.startAngle+0.1, d.endAngle);
+        return function(t) {
+          d.endAngle = i(t);
+          return outerArc(d);
+        }
+      });
   }
 
   // Set the browser history on the scope object.
   var setHistograph = function() {
+    d3.select("svg").remove();
     chrome.history.search({"text": ""}, function(items) {
       $scope.data.items = items;
+      $scope.data.hashes = [];
+      buildGraphData();
       buildGraph();
-      console.log("$scope.data.colors", Object.keys($scope.data.colors).length);
-      $timeout();
+      // $timeout();
     });
   }
 
   setHistograph();
 });
-
-// [#BD4F0E,
-// #F49156,
-// #E46E28,
-// #9B3A00,
-// #722A00,
-
-// #BD7A0E,
-// #F4B856,
-// #E49D28,
-// #9B6000,
-// #724600,
-
-// #13417C,
-// #416BA0,
-// #255696,
-// #083166,
-// #04234B,
-
-// #097B5F,
-// #389F85,
-// #1A9576,
-// #00654C,
-// #004A37]
