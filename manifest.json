@@ -9,10 +9,9 @@
   "background": {
     "scripts": ["js/vendor/angular.min.js",
                 "js/vendor/angular-route.min.js",
-                "js/vendor/jquery-2.1.1.min.js",
                 "js/vendor/d3.min.js"]
   },
-  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
   "chrome_url_overrides" : {
     "newtab": "tab.html"
   }

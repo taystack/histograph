@@ -12,13 +12,16 @@
 
       <div ng-controller="MainCtrl" id="main-controller">
 
-        <div id="histograph"></div>
+        <div id="histograph" ng-click="handleClick($event)"></div>
 
-        <ul
-          ng-show="data.items.length"
-          ng-repeat="item in data.items"
-        >
-          <li>{{ item }}</li>
+        <ul id="hostnames">
+          <li ng-repeat="item in data.hashes | orderBy:'visitCount':true">
+            <div class="host-container" data-hostname="{{item.name}}">
+              <div class="color-legend" style="background: {{ item.color }}"></div>
+              <a href="{{ item.name }}" class="hostname">{{ item.name }}</a>
+            </div>
+            <ul class="subdomains"></ul>
+          </li>
         </ul>
 
       </div>
@@ -28,7 +31,6 @@
     <script src="./js/vendor/angular.min.js"></script>
     <script src="./js/vendor/angular-route.min.js"></script>
     <script src="./js/vendor/d3.min.js"></script>
-    <script src="./js/vendor/jquery-2.1.1.min.js"></script>
     <script src="./js/app.js"></script>
 
   </body>

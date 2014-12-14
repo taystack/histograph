@@ -1,4 +1,6 @@
-var histograph = angular.module("Histograph", []);
+var histograph = angular.module("Histograph", [
+  'ngRoute'
+]);
 
 // app.config(function($routeProvider, $locationProvider) {
 //   $routeProvider
@@ -19,7 +21,6 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
 
   // Build the history object
   $scope.data = {
-    colors: Array(),
     hashes: Array(),
     visitTotal: 0,
     lookupId: {},
@@ -117,7 +118,9 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     if (tmpColorsCompliment[color].place === tmpColorsCompliment[color].items.length) {
       tmpColorsCompliment[color].place = 0;
     }
-    return tmpColorsCompliment[color].items[tmpColorsCompliment[color].place];
+    var clr = tmpColorsCompliment[color].items[tmpColorsCompliment[color].place];
+    tmpColorsCompliment[color].place += 1;
+    return clr;
   }
 
   var getHostname = function(url) {
@@ -181,7 +184,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
         outerRadius = Math.min(innerWidth, innerHeight) / 2;
 
     var innerPie = d3.layout.pie()
-      .value(function(val, idx) {
+      .value(function(val) {
         return val.visitCount;
       })
       .startAngle(1.1*Math.PI)
@@ -201,7 +204,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       .sort(function(a, b) {
         var lookA = $scope.data.lookupParent[a.id].lastVisitTime;
         var lookB = $scope.data.lookupParent[b.id].lastVisitTime;
-        return (lookB) < lookA ? -1 : (lookB) > lookA ? 1 : (lookB) >= lookA ? 0 : NaN;
+        return lookB < lookA ? -1 : lookB > lookA ? 1 : lookB >= lookA ? 0 : NaN;
       });
 
     var innerArc = d3.svg.arc()
@@ -231,11 +234,11 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       .attr("fill", function(d) {return d.data.color;})
       .transition().delay(function(d, i) { return i * 100; }).duration(1000)
       .attrTween('d', function(d) {
-           var i = d3.interpolate(d.startAngle+0.1, d.endAngle);
-           return function(t) {
-               d.endAngle = i(t);
-             return innerArc(d);
-           }
+        var i = d3.interpolate(d.startAngle+0.1, d.endAngle);
+        return function(t) {
+          d.endAngle = i(t);
+          return innerArc(d);
+        }
       });
 
     var outerPath = outerSvg.selectAll("path")
@@ -253,6 +256,12 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       });
   }
 
+  $scope.handleClick = function(event) {
+    console.log(event.target.attributes["class"]);
+  }
+
+  $scope.getHostname = function(url) {return getHostname(url);}
+
   // Set the browser history on the scope object.
   var setHistograph = function() {
     d3.select("svg").remove();
@@ -261,7 +270,8 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       $scope.data.hashes = [];
       buildGraphData();
       buildGraph();
-      // $timeout();
+      console.log("$scope.data.hashes", $scope.data.hashes);
+      $timeout($scope.$apply, 4000);
     });
   }
 

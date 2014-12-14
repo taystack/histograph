@@ -27,3 +27,37 @@ svg {
   height: 600px;
   width: 600px;
 }
+
+#hostnames {
+  list-style-type: none;
+  margin: 20px;
+  padding: 20px;
+  flex-grow: 1;
+  background: rgba(0,0,0, .5);
+  border-radius: 2px;
+}
+
+a.hostname {
+  margin: 0;
+  text-decoration: none;
+  color: #fff;
+  margin-left: 20px;
+}
+
+.host-container {
+  align-items: center;
+  border-radius: 2px;
+  display: flex;
+  margin-bottom: 20px;
+  -webkit-transition: background linear 250ms;
+  transition: background linear 250ms;
+}
+.host-container:hover {
+  background: rgba(225,255,255,.1);
+}
+
+.color-legend {
+  height: 40px;
+  width: 40px;
+  border-radius: 2px;
+}
