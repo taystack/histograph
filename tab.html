@@ -17,10 +17,17 @@
         <ul id="hostnames">
           <li ng-repeat="item in data.hashes | orderBy:'visitCount':true">
             <div class="host-container" data-hostname="{{item.name}}">
-              <div class="color-legend" style="background: {{ item.color }}"></div>
-              <a href="{{ item.name }}" class="hostname">{{ item.name }}</a>
+              <div class="filthy">
+                <div class="color-legend" style="background: {{ item.color }}"></div>
+                <a href="{{ item.name }}" class="hostname">{{ item.name }}</a>
+              </div>
+              <span class="visit-count">{{ item.visitCount }}</span>
             </div>
-            <ul class="subdomains"></ul>
+            <ul class="subdomains">
+              <li class="sub-item hidden" ng-repeat="sub in item.items">
+                {{ sub.url }}
+              </li>
+            </ul>
           </li>
         </ul>
 

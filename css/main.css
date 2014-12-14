@@ -44,10 +44,15 @@ a.hostname {
   margin-left: 20px;
 }
 
+.filthy {
+  align-items: center;
+  display: flex;
+}
 .host-container {
   align-items: center;
   border-radius: 2px;
   display: flex;
+  justify-content: space-between;
   margin-bottom: 20px;
   -webkit-transition: background linear 250ms;
   transition: background linear 250ms;
@@ -60,4 +65,17 @@ a.hostname {
   height: 40px;
   width: 40px;
   border-radius: 2px;
+}
+
+.subdomains {
+  max-width: 500px;
+  overflow: hidden;
+}
+
+.visit-count {
+  margin-right: 20px;
+}
+
+.hidden {
+  display: none;
 }

@@ -1,6 +1,4 @@
-var histograph = angular.module("Histograph", [
-  'ngRoute'
-]);
+var histograph = angular.module("Histograph", ['ngRoute']);
 
 // app.config(function($routeProvider, $locationProvider) {
 //   $routeProvider
