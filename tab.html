@@ -9,10 +9,13 @@
 
     <div class="container">
 
-
       <div ng-controller="MainCtrl" id="main-controller">
 
-        <div id="histograph" ng-click="handleClick($event)"></div>
+        <div class="graph-container">
+          <h1 id="histograph-title">Histograph</h1>
+          <div id="histograph" ng-click="handleClick($event)"></div>
+          <p>Browser history visualization tool.</p>
+        </div>
 
         <ul id="hostnames">
           <li ng-repeat="item in data.hashes | orderBy:'visitCount':true">

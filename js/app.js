@@ -255,7 +255,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
   }
 
   $scope.handleClick = function(event) {
-    console.log(event.target.attributes["class"]);
+    console.warn(event.target.attributes["class"], " Event handler not implemented yet!");
   }
 
   $scope.getHostname = function(url) {return getHostname(url);}
@@ -268,7 +268,6 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       $scope.data.hashes = [];
       buildGraphData();
       buildGraph();
-      console.log("$scope.data.hashes", $scope.data.hashes);
       $timeout($scope.$apply, 4000);
     });
   }

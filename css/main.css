@@ -23,6 +23,12 @@ svg {
 }
 
 #histograph {
+  height: 450px;
+  width: 450px;
+  margin: 0 auto;
+}
+
+.graph-container {
   position: relative;
   height: 600px;
   width: 600px;
@@ -78,4 +84,11 @@ a.hostname {
 
 .hidden {
   display: none;
+}
+
+svg {
+  z-index: -1;
+}
+path {
+  z-index: 1000;
 }
