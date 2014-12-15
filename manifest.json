@@ -3,6 +3,19 @@
   "name": "Histograph",
   "description": "Browser history visualization with clean tool.",
   "version": "0.1",
+  "icons": {
+    "19": "images/icon19.png",
+    "38": "images/icon38.png",
+    "128": "images/icon128.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "images/icon19.png",
+      "38": "images/icon38.png",
+      "128": "images/icon128.png"
+    },
+    "default_title": "Histograph"
+  },
   "permissions": [
     "history"
   ],
@@ -15,5 +28,6 @@
   "chrome_url_overrides" : {
     "newtab": "tab.html"
   }
+
 }
 
