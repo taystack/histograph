@@ -23,7 +23,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     visitTotal: 0,
     lookupId: {},
     lookupUrl: {},
-    lookupParent: {},
+    parentOf: {},
     place: 0
   };
 
@@ -122,7 +122,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
   }
 
   var getHostname = function(url) {
-    var tmp = document.createElement("a")
+    var tmp = document.createElement("a");
     tmp.href = url;
     return tmp.hostname;
   }
@@ -135,10 +135,9 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
 
         // Append the item to the new entry's items list.
         $scope.data.lookupUrl[name].items[$scope.data.items[x].id] = $scope.data.items[x];
-        // $scope.data.hashes[name].items[$scope.data.items[x].id] = $scope.data.items[x];
 
-        // Generate the lookup parent by id. => $scope.data.lookupParent[id] = hist obj
-        $scope.data.lookupParent[$scope.data.items[x].id] = $scope.data.lookupUrl[name];
+        // Generate the lookup parent by id. => $scope.data.parentOf[id] = hist obj
+        $scope.data.parentOf[$scope.data.items[x].id] = $scope.data.lookupUrl[name];
 
         // Sum the parent's visitCount with the child's visitCount.
         $scope.data.lookupUrl[name].visitCount += $scope.data.items[x].visitCount;
@@ -160,8 +159,8 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
         // Generate the lookup by id. => $scope.data.lookup[id] = hist obj
         $scope.data.lookupId[$scope.data.items[x].id] = $scope.data.items[x];
 
-        // Generate the lookup parent by id. => $scope.data.lookupParent[id] = hist obj
-        $scope.data.lookupParent[$scope.data.items[x].id] = obj;
+        // Generate the lookup parent by id. => $scope.data.parentOf[id] = hist obj
+        $scope.data.parentOf[$scope.data.items[x].id] = obj;
 
         // Generate the lookup by url. => $scope.data.lookup[url] = hist obj
         $scope.data.lookupUrl[name] = obj;
@@ -182,9 +181,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
         outerRadius = Math.min(innerWidth, innerHeight) / 2;
 
     var innerPie = d3.layout.pie()
-      .value(function(val) {
-        return val.visitCount;
-      })
+      .value(function(val) {return val.visitCount;})
       .startAngle(1.1*Math.PI)
       .endAngle(3.1*Math.PI)
       .sort(function(a, b) {
@@ -194,14 +191,12 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       });
 
     var outerPie = d3.layout.pie()
-      .value(function(val) {
-        return val.visitCount;
-      })
+      .value(function(val) {return val.visitCount;})
       .startAngle(1.1*Math.PI)
       .endAngle(3.1*Math.PI)
       .sort(function(a, b) {
-        var lookA = $scope.data.lookupParent[a.id].lastVisitTime;
-        var lookB = $scope.data.lookupParent[b.id].lastVisitTime;
+        var lookA = $scope.data.parentOf[a.id].lastVisitTime;
+        var lookB = $scope.data.parentOf[b.id].lastVisitTime;
         return lookB < lookA ? -1 : lookB > lookA ? 1 : lookB >= lookA ? 0 : NaN;
       });
 
@@ -228,8 +223,9 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     var innerPath = innerSvg.selectAll("path")
       .data(innerPie($scope.data.hashes))
       .enter().append("path")
-      .attr("class", function(d) {return d.data.name;})
+      .attr("class", function(d) {return d.data.name + " inner";})
       .attr("fill", function(d) {return d.data.color;})
+      .on("click", function(d) {console.log("d", d);})
       .transition().delay(function(d, i) { return i * 100; }).duration(1000)
       .attrTween('d', function(d) {
         var i = d3.interpolate(d.startAngle+0.1, d.endAngle);
@@ -242,8 +238,9 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     var outerPath = outerSvg.selectAll("path")
       .data(outerPie($scope.data.items))
       .enter().append("path")
-      .attr("class", function(d) {return getHostname(d.data.url);})
+      .attr("class", function(d) {return getHostname(d.data.url + " outer");})
       .attr("fill", function(d) {return getCompliment($scope.data.lookupUrl[getHostname(d.data.url)].color);})
+      .on("click", function(d) {console.log("d", d);})
       .transition().delay(function(d, i) { return i * 20; }).duration(1000)
       .attrTween('d', function(d) {
         var i = d3.interpolate(d.startAngle+0.1, d.endAngle);
@@ -255,7 +252,12 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
   }
 
   $scope.handleClick = function(event) {
-    console.warn(event.target.attributes["class"], " Event handler not implemented yet!");
+    var things = $scope.data.lookupUrl[event.currentTarget.id].items
+    console.log(event.target.id);
+    for (var item in things) {
+      console.log(things[item]);
+      // event.target.append()
+    }
   }
 
   $scope.getHostname = function(url) {return getHostname(url);}
@@ -268,7 +270,8 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       $scope.data.hashes = [];
       buildGraphData();
       buildGraph();
-      $timeout($scope.$apply, 4000);
+      console.log("$scope.data.hashes", $scope.data.hashes);
+      $scope.$apply();
     });
   }
 

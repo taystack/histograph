@@ -17,7 +17,8 @@
     "default_title": "Histograph"
   },
   "permissions": [
-    "history"
+    "history",
+    "tabs"
   ],
   "background": {
     "scripts": ["js/vendor/angular.min.js",

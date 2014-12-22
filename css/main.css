@@ -43,11 +43,12 @@ svg {
   border-radius: 2px;
 }
 
-a.hostname {
-  margin: 0;
-  text-decoration: none;
+.hostname {
   color: #fff;
+  cursor: default;
+  margin: 0;
   margin-left: 20px;
+  text-decoration: none;
 }
 
 .filthy {
@@ -62,6 +63,10 @@ a.hostname {
   margin-bottom: 20px;
   -webkit-transition: background linear 250ms;
   transition: background linear 250ms;
+}
+.host-container,
+.host-container * {
+  user-select: none;
 }
 .host-container:hover {
   background: rgba(225,255,255,.1);
