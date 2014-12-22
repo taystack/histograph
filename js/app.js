@@ -28,73 +28,73 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
   };
 
   var tmpColorsCompliment = {
-    "#0A268A": {
+    "#0A268A": { // blue
       place: 0,
       items: [
-        "#7BE926",
-        "#63E500",
-        "#3D8C00",
-        "#2C6400"
-      ]
-    },
-    "#CC8E00": {
-      place: 0,
-      items: [
-        "#3352C2",
+        "#3352C2", // blue
         "#0D31B4",
         "#091E6B",
         "#08164D"
       ]
     },
-    "#B70034": {
+    "#CC8E00": { // yellow
       place: 0,
       items: [
-        "#FFBE2A",
+        "#FFBE2A", // oj
         "#FFB100",
         "#9E6E00",
         "#714F00"
       ]
     },
-    "#4EB500": {
+    "#B70034": { // maroon
       place: 0,
       items: [
-        "#EC275F",
+        "#EC275F", // maroon
         "#E80042",
         "#8E0029",
         "#66001D"
       ]
     },
-    "#CCC900": {
+    "#4EB500": { // green
       place: 0,
       items: [
-        "#FFFC2A",
+        "#7BE926", // green
+        "#63E500",
+        "#3D8C00",
+        "#2C6400"
+      ]
+    },
+    "#CCC900": { // yellow
+      place: 0,
+      items: [
+        "#FFFC2A", // yellow
         "#FFFC00",
         "#9E9C00",
         "#717000"
       ]
     },
-    "#008A56": {
+    "#008A56": { // green
       place: 0,
       items: [
-        "#20C184",
+        "#20C184", // green
         "#00B470",
         "#006B42",
         "#004C30"
       ]
     },
-    "#CC3F00": {
+    "#CC3F00": { // red/oj
       place: 0,
       items: [
-        "#FF6C2A",
+        "#FF6C2A", // red/oj
         "#FF4F00",
         "#9E3100",
         "#712300"
       ]
     },
-    "#550588": {
+    "#550588": { // purple
       place: 0,
       items: [
-        "#8529C0",
+        "#8529C0", // purple
         "#6F06B2",
         "#42046A",
         "#30044C"
