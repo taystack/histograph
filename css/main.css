@@ -11,7 +11,6 @@ ul {
 }
 
 svg {
-  position: absolute;
   top: 0;
   right: 0;
   left: 0;
@@ -19,16 +18,11 @@ svg {
 
 #main-controller {
   display: flex;
-  flex-flow: row wrap;
-}
-
-#histograph {
-  height: 450px;
-  width: 450px;
-  margin: 0 auto;
 }
 
 .graph-container {
+  flex-grow: 1;
+  flex-shrink: 0;
   position: relative;
   height: 600px;
   width: 600px;
@@ -41,6 +35,8 @@ svg {
   flex-grow: 1;
   background: rgba(0,0,0, .5);
   border-radius: 2px;
+  overflow-y: scroll;
+  height: 80vh;
 }
 
 .hostname {
@@ -68,6 +64,7 @@ svg {
 .host-container * {
   user-select: none;
 }
+.host-container.hover,
 .host-container:hover {
   background: rgba(225,255,255,.1);
 }
@@ -76,11 +73,6 @@ svg {
   height: 40px;
   width: 40px;
   border-radius: 2px;
-}
-
-.subdomains {
-  max-width: 500px;
-  overflow: hidden;
 }
 
 .visit-count {
@@ -92,8 +84,136 @@ svg {
 }
 
 svg {
-  z-index: -1;
+  /*z-index: -1;*/
 }
 path {
-  z-index: 1000;
+  /*z-index: 1000;*/
+}
+
+.subdomains {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  margin: 0 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  user-select: none;
+  transition: max-height ease-out 250ms;
+  -webkit-transition: max-height ease-out 250ms;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+.subdomains[ng-hide="true"] {
+  max-height: 0px;
+  margin-bottom: 0;
+}
+
+.sub-color {
+  height: 20px;
+  width: 20px;
+}
+
+.sub-item {
+  display: flex;
+  color: #888;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sub-item .sub-name {
+  flex-basis: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*For the tree*/
+.node circle {
+  cursor: pointer;
+  /*stroke: steelblue;*/
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font-size: 11px;
+  fill: #ccc;
+}
+
+path.link {
+  fill: none;
+  /*stroke: #ccc;*/
+  stroke-width: 1.5px;
+}
+
+rect {
+  fill: none;
+  pointer-events: all;
+}
+
+pre {
+  font-size: 18px;
+}
+
+line {
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.string, .regexp {
+  color: #f39;
+}
+
+.keyword {
+  color: #00c;
+}
+
+.comment {
+  color: #777;
+  font-style: oblique;
+}
+
+.number {
+  color: #369;
+}
+
+.class, .special {
+  color: #1181B8;
+}
+
+a:link, a:visited {
+  color: #000;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #666;
+}
+
+.hint {
+  position: absolute;
+  right: 0;
+  width: 1280px;
+  font-size: 12px;
+  color: #999;
+}
+
+.tooltip-container {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 300px;
+  padding: 10px;
+  border-radius: 2px;
+  transition: all linear 250ms;
+  background: rgba(0,0,0, .5);
+  border: 1px solid rgba(#000, .2);
+  opacity: 0;
+}
+
+.tooltip-container [class*="-space"] {
+  display: flex;
+  -webkit-align-items: space-between;
+  align-items: space-between;
 }
