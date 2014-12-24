@@ -17,48 +17,34 @@ var histograph = angular.module("Histograph", ['ngRoute']);
 
 histograph.controller("MainCtrl", function($scope, $timeout) {
 
-  // Build the history object
-  $scope.data = {
-    hashes: Array(),
-    visitTotal: 0,
-    hostnames: {},
-    preparedData: {},
-    place: 0
-  };
-
-  $scope.toggle = {};
-
-  $scope.toggleAll = function() {
-    for (var key in $scope.toggle) $scope.toggle[key] = true;
-  };
-
-  $scope.calculatePercentage = function(size) {
-    // x/100 == size/$scope.data.visitTotal
-    return (size / $scope.data.visitTotal) * 100;
-  }
-
-  $scope.handleMouseOver = function(data) {
-    var event = d3.event;
-    $scope.hoverUrl = data.url;
-    $scope.hoverVisits = data.size;
-    $scope.hoverPercent = $scope.calculatePercentage(data.size);
-    $scope.$apply();
-    d3.select(".tooltip-container").attr(
-      "style",
-        "left: " + event.screenX + "px;" +
-        "top: " + (event.screenY - 60) + "px;" +
-        "opacity: 1");
-  };
-
-  $scope.handleMouseOut = function() {
-    d3.select(".tooltip-container").attr(
-      "style",
-        "left: " + event.screenX + "px;" +
-        "top: " + (event.screenY - 60) + "px;" +
-        "opacity: 0");
-  };
-
   var tmpColorsCompliment = {
+    "#7E006F": { // purple
+      place: 0,
+      items: [
+        "#BF00A8",
+        "#990086",
+        "#620056",
+        "#410039",
+      ]
+    },
+    "#B60500": { // red
+      place: 0,
+      items: [
+        "#FF0700",
+        "#DC0600",
+        "#8E0400",
+        "#5D0200",
+      ]
+    },
+    "#015971": { // teal
+      place: 0,
+      items: [
+        "#048BB1",
+        "#026B89",
+        "#014558",
+        "#002D3A",
+      ]
+    },
     "#0A268A": { // blue
       place: 0,
       items: [
@@ -152,6 +138,61 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     return clr;
   }
 
+  // Build the history object
+  $scope.data = {
+    hashes: Array(),
+    visitTotal: 0,
+    hostnames: {},
+    preparedData: {},
+    place: 0
+  };
+
+  $scope.toggle = {};
+
+  $scope.toggleParent = {};
+
+  $scope.toggleAll = function() {
+    for (var key in $scope.toggle) $scope.toggle[key] = true;
+  };
+
+  $scope.calculatePercentage = function(size) {
+    return (size / $scope.data.visitTotal) * 100;
+  }
+
+  $scope.handleMouseOver = function(data) {
+    if (!data.id_) return;
+    console.log("data.id_", data.id_);
+    if (data.id_ === "host") {
+      d3.select("[data-host='" + data.name + "']").classed("hover", true);
+    } else {
+      d3.select("#" + data.id_).classed("hover", true);
+    }
+    var event = d3.event;
+    $scope.hoverUrl = data.name;
+    $scope.hoverVisits = data.size;
+    $scope.hoverPercent = $scope.calculatePercentage(data.size);
+    $scope.$apply();
+    d3.select(".tooltip-container").attr(
+      "style",
+        "left: " + (event.screenX + 20) + "px;" +
+        "top: " + (event.screenY - 60) + "px;" +
+        "opacity: 1; z-index: 100");
+  };
+
+  $scope.handleMouseOut = function(data) {
+    if (!data.id_) return;
+    if (data.id_ === "host") {
+      d3.select("[data-host='" + data.name + "']").classed("hover", false);
+    } else {
+      d3.select("#" + data.id_).classed("hover", false);
+    }
+    d3.select(".tooltip-container").attr(
+      "style",
+        "left: " + event.screenX + "px;" +
+        "top: " + (event.screenY - 60) + "px;" +
+        "opacity: 0; z-index: -1");
+  };
+
   var getHostname = function(url) {
     var tmp = document.createElement("a");
     tmp.href = url;
@@ -161,7 +202,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
   var buildGraphData = function() {
 
     var trimStr = function(str) {
-      var len = 25;
+      var len = 45;
       if (str.length > len) {
         return str.substring(0, len) + "…";
       } else { return str; }
@@ -171,38 +212,68 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     // is also a child of it's host.
     for (var item in $scope.data.items) {
       $scope.data.visitTotal += $scope.data.items[item].visitCount;
+
       var host = getHostname($scope.data.items[item].url),
           name;
-      if ($scope.data.items[item].title) {
-        name = trimStr($scope.data.items[item].title);
-      } else {
-        name = trimStr($scope.data.items[item].url.split(host)[1]);
-      }
-      var obj = {
-        name: name,
-        size: $scope.data.items[item].visitCount,
-        url: $scope.data.items[item].url
-      }
-      if ($scope.data.hostnames[host]) {
-        obj.color = getCompliment($scope.data.hostnames[host].color)
-        $scope.data.hostnames[host].size += obj.size;
-        $scope.data.hostnames[host].children.push(obj);
-      } else {
-        var parent = {
+
+      // Set the hostname on the hostname hash.
+      if (!$scope.data.hostnames[host]) {
+        $scope.data.hostnames[host] = {
           name: host,
           url: host,
-          size: obj.size,
-          children: [],
-          color: getColor()
+          size: $scope.data.items[item].visitCount,
+          children: {},
+          color: getColor(),
+          id_: "host"
+        };
+      } else {
+        $scope.data.hostnames[host].size += $scope.data.items[item].visitCount;
+      }
+
+      // Check to see if this is a query
+      if ($scope.data.items[item].url.split("?").length > 1) {
+        var spName = $scope.data.items[item].url.split(host)[1].split("?");
+        if (!$scope.data.hostnames[host].children[spName[0]]) {
+          var qObj = {
+            children: [],
+            color: getCompliment($scope.data.hostnames[host].color),
+            name: spName[0],
+            size: $scope.data.items[item].visitCount,
+            url: spName[0],
+            id_: "search"
+          };
+          // Set the actual history piece here above the query.
+          qObj.children.push({
+            color: getCompliment($scope.data.hostnames[host].color),
+            id_: "id-" + $scope.data.items[item].id,
+            name: trimStr("?" + spName[1]),
+            size: $scope.data.items[item].visitCount,
+            url: "?" + $scope.data.items[item].url
+          })
+          // Set the query obj on the host.
+          $scope.data.hostnames[host].children[qObj.name] = qObj;
+        } else {
+          // Update the size of this piece.
+          $scope.data.hostnames[host].children[spName[0]].size += $scope.data.items[item].visitCount;
+          $scope.data.hostnames[host].children[spName[0]].children.push({
+            color: getCompliment($scope.data.hostnames[host].color),
+            id_: "id-" + $scope.data.items[item].id,
+            name: trimStr("?" + spName[1]),
+            size: $scope.data.items[item].visitCount,
+            url: "?" + $scope.data.items[item].url
+          })
         }
-        $scope.toggle[host] = true;
-        obj.color = getCompliment(parent.color);
-        parent.children.push(obj);
-        $scope.data.hostnames[host] = parent;
+      } else { // It's not a query.
+        $scope.data.hostnames[host].children["id-" + $scope.data.items[item].id] = {
+          color: getCompliment($scope.data.hostnames[host].color),
+          name: trimStr($scope.data.items[item].url),
+          size: $scope.data.items[item].visitCount,
+          url: $scope.data.items[item].url,
+          id_: "id-" + $scope.data.items[item].id
+        }
+        // Update the size of the host.
       }
     }
-
-    // $scope.$apply();
 
     // Now build the d3 consumable data.
     $scope.data.preparedData = {
@@ -214,14 +285,22 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     };
     var root = $scope.data.hostnames;
     for (var item in root) {
-      $scope.data.preparedData.children.push({
+      var obj = {
         name: item,
         url: item,
-        children: root[item].children,
+        children: [],
         size: root[item].size,
-        color: root[item].color
-      });
+        color: root[item].color,
+        id_: root[item].id_
+      };
+      if (root[item].children) {
+        for (var subItem in root[item].children) {
+          obj.children.push(root[item].children[subItem]);
+        }
+      }
+      $scope.data.preparedData.children.push(obj)
     }
+    // debugger;
 
     $scope.$apply();
   }
@@ -245,7 +324,6 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     // Set the root node in the circular tree.
     var root = $scope.data.preparedData;
 
-    // debugger;
 
     var nodes = tree.nodes(root),
         links = tree.links(nodes);
@@ -417,8 +495,8 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
 
   var buildGraph = function() {
     var cirPad = 2,
-        width = 400,
-        height = 500,
+        width = 500,
+        height = 600,
         radius = Math.min(width, height) / 2;
 
     var x = d3.scale.linear()
@@ -453,7 +531,8 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       var path = svg.selectAll("path")
           .data(partition.nodes($scope.data.preparedData))
         .enter().append("path")
-          .attr("id", function(d) {return d.name})
+          .attr("data-id", function(d) {return d.id_ || d.name})
+          .attr("class", "starburst")
           .attr("d", arc)
           .style("fill", function(d) { return d.color; })
           .on("mouseover", $scope.handleMouseOver)
@@ -462,7 +541,8 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
 
       function click(d) {
         var item = document.querySelector("[data-host='" + d3.event.target.id +"']")
-        item ? item.click() : $scope.toggleAll();
+        $scope.toggle[d.name] = false;
+        if (d.name === "Histograph") {$scope.toggleAll();}
         path.transition()
           .duration(750)
           .attrTween("d", arcTween(d));
