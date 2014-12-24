@@ -57,6 +57,12 @@ svg {
   align-items: center;
   justify-content: center;
 }
+.rotten .backer {
+  height: 16px;
+  width: 16px;
+  background: rgba(255,255,255,.4);
+}
+.rotten .backer,
 .rotten img {
   position: absolute;
   left: 50%;
@@ -100,8 +106,8 @@ svg {
   /*z-index: 1;*/
 }
 path.starburst {
-  stroke-width: 1px;
-  stroke: rgba(0,0,0,.1);
+  /*stroke-width: 1px;*/
+  /*stroke: rgba(0,0,0,.1);*/
   /*z-index: 1000;*/
 }
 

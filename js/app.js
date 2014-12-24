@@ -266,9 +266,9 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       } else { // It's not a query.
         $scope.data.hostnames[host].children["id-" + $scope.data.items[item].id] = {
           color: getCompliment($scope.data.hostnames[host].color),
-          name: trimStr($scope.data.items[item].url),
+          name: trimStr($scope.data.items[item].url.split(host)[1]),
           size: $scope.data.items[item].visitCount,
-          url: $scope.data.items[item].url,
+          url: $scope.data.items[item].url.split(host)[1],
           id_: "id-" + $scope.data.items[item].id
         }
         // Update the size of the host.
