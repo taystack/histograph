@@ -151,17 +151,47 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
 
   $scope.toggleParent = {};
 
+  $scope.nukeHistory = function(event) {
+    // debugger;
+    chrome.history.deleteAll();
+  };
+
   $scope.toggleAll = function() {
     for (var key in $scope.toggle) $scope.toggle[key] = true;
   };
 
   $scope.calculatePercentage = function(size) {
     return (size / $scope.data.visitTotal) * 100;
-  }
+  };
+
+  var showTip = function(x, y) {
+    d3.select(".tooltip-container").attr(
+      "style",
+        "left: " + (x + 20) + "px;" +
+        "top: " + (y - 60) + "px;" +
+        "opacity: 1; z-index: 100");
+  };
+
+  var hideTip = function(x, y) {
+    d3.select(".tooltip-container").attr(
+      "style",
+        "left: " + event.screenX + "px;" +
+        "top: " + (event.screenY - 60) + "px;" +
+        "opacity: 0; z-index: -1");
+  };
 
   $scope.handleMouseOver = function(data) {
+    // The center of the whole tooltip.
+    // debugger;
+    if (data.name === "Histograph") {
+      $scope.hoverUrl = data.name;
+      $scope.hoverVisits = $scope.data.visitTotal;
+      $scope.hoverPercent = 100;
+      $scope.$apply();
+      showTip(event.screenX, event.screenY);
+      return;
+    }
     if (!data.id_) return;
-    console.log("data.id_", data.id_);
     if (data.id_ === "host") {
       d3.select("[data-host='" + data.name + "']").classed("hover", true);
     } else {
@@ -172,32 +202,31 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     $scope.hoverVisits = data.size;
     $scope.hoverPercent = $scope.calculatePercentage(data.size);
     $scope.$apply();
-    d3.select(".tooltip-container").attr(
-      "style",
-        "left: " + (event.screenX + 20) + "px;" +
-        "top: " + (event.screenY - 60) + "px;" +
-        "opacity: 1; z-index: 100");
+    showTip(event.screenX, event.screenY);
   };
 
   $scope.handleMouseOut = function(data) {
+    if (data.name === "Histograph") {
+      $scope.hoverUrl = data.name;
+      $scope.hoverVisits = $scope.data.visitTotal;
+      $scope.hoverPercent = 100;
+      $scope.$apply();
+      return;
+    }
     if (!data.id_) return;
     if (data.id_ === "host") {
       d3.select("[data-host='" + data.name + "']").classed("hover", false);
     } else {
       d3.select("#" + data.id_).classed("hover", false);
     }
-    d3.select(".tooltip-container").attr(
-      "style",
-        "left: " + event.screenX + "px;" +
-        "top: " + (event.screenY - 60) + "px;" +
-        "opacity: 0; z-index: -1");
+    hideTip(event.screenX, event.screenY);
   };
 
   var getHostname = function(url) {
     var tmp = document.createElement("a");
     tmp.href = url;
     return tmp.hostname;
-  }
+  };
 
   var buildGraphData = function() {
 
@@ -224,8 +253,10 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
           size: $scope.data.items[item].visitCount,
           children: {},
           color: getColor(),
-          id_: "host"
+          id_: "host",
+          type: "host"
         };
+        $scope.toggle[host] = true;
       } else {
         $scope.data.hostnames[host].size += $scope.data.items[item].visitCount;
       }
@@ -234,6 +265,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       if ($scope.data.items[item].url.split("?").length > 1) {
         var spName = $scope.data.items[item].url.split(host)[1].split("?");
         if (!$scope.data.hostnames[host].children[spName[0]]) {
+          // It is a query of sorts...
           var qObj = {
             children: [],
             color: getCompliment($scope.data.hostnames[host].color),
@@ -367,7 +399,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     var diagonal = d3.svg.diagonal()
         .projection(function(d) { return [d.y, d.x]; });
 
-    var vis = d3.select("#histograph").append("svg:svg")
+    var vis = d3.select("#histo-circle-tree").append("svg:svg")
         .attr("width", w + m[1] + m[3])
         .attr("height", h + m[0] + m[2])
       .append("svg:g")
@@ -513,7 +545,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       .append("g")
         .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 10) + ")");
 
-    var partition = d3.layout.partition()
+    $scope.partition = d3.layout.partition()
         .value(function(d) { return d.size; });
 
     var arc = d3.svg.arc()
@@ -529,7 +561,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
       buildCircleTree();
 
       var path = svg.selectAll("path")
-          .data(partition.nodes($scope.data.preparedData))
+          .data($scope.partition.nodes($scope.data.preparedData))
         .enter().append("path")
           .attr("data-id", function(d) {return d.id_ || d.name})
           .attr("class", "starburst")
@@ -570,9 +602,6 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
   $scope.handleClick = function(event) {
     var name = event.currentTarget.attributes["data-host"].value;
     $scope.toggle[name] = !$scope.toggle[name];
-    // var item = document.querySelector("#" + name);
-    // console.log("item", item);
-    // item.on("click")();
   }
 
   $scope.handleWheelClick = function(name) {
@@ -586,4 +615,43 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
   $scope.getHostname = function(url) {return getHostname(url);}
 
   buildGraph();
+
+  // Chrome history API hooks.
+  chrome.history.onVisited.addListener(function (HistoryItem) {
+    var hostname = getHostname(HistoryItem.url);
+    var subDomain = HistoryItem.url.split(hostname)[1];
+    // Check for query.
+    if (subDomain.split("?").length > 1) {
+      var sp = subDomain.split("?");
+      subDomain = "?" + sp[0];
+      var query = sp[1];
+    }
+
+    console.log("HistoryItem", HistoryItem);
+
+    var g = d3.select("#histograph svg g");
+    console.log("g", g);
+
+    debugger;
+
+    var path = g.selectAll("path")
+        .data($scope.partition.nodes(newData))
+      .enter().append("path")
+        .attr("data-id", function(d) {return d.id_ || d.name})
+        .attr("class", "starburst")
+        .attr("d", arc)
+        .style("fill", function(d) { return d.color; })
+        .on("mouseover", $scope.handleMouseOver)
+        .on("mouseleave", $scope.handleMouseOut)
+        .on("click", click);
+
+    function click(d) {
+      var item = document.querySelector("[data-host='" + d3.event.target.id +"']")
+      $scope.toggle[d.name] = false;
+      if (d.name === "Histograph") {$scope.toggleAll();}
+      path.transition()
+        .duration(750)
+        .attrTween("d", arcTween(d));
+    }
+  })
 });

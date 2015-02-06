@@ -2,7 +2,14 @@ body {
   background: #2d2d2d;
   color: #fff;
   text-align: center;
-  font-family: sans-serif;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.title-section {
+  /*font-family: ;*/
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #ccc;
 }
 
 ul {
@@ -35,7 +42,7 @@ svg {
   flex-grow: 1;
   background: rgba(0,0,0, .5);
   border-radius: 2px;
-  overflow-y: scroll;
+  overflow-y: auto;
   height: 80vh;
 }
 
