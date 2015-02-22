@@ -8,6 +8,8 @@
   </head>
   <body>
 
+    <div id="histo-watcher"></div>
+
     <div class="title-section">
       <span>Histograph</span>
     </div>
@@ -41,6 +43,14 @@
           </div>
         </div>
 
+
+        <ul id="hostnames">
+          <div>
+            <input id="histo-search" ng-model="data.search"/>
+          </div>
+          <li class="histo-item" ng-repeat="item in data.items">{{item.title}} - {{item.url}}</li>
+        </ul>
+<!--
         <ul id="hostnames">
           <li ng-repeat="item in data.preparedData.children | orderBy:'size':true"
               ng-hide="{{ toggleParent[item.name] }}">
@@ -78,15 +88,18 @@
             </ul>
           </li>
         </ul>
-
+ -->
       </div>
+
 
     </div>
 
     <script src="./js/vendor/angular.min.js"></script>
     <script src="./js/vendor/angular-route.min.js"></script>
     <script src="./js/vendor/d3.min.js"></script>
-    <script src="./js/app.js"></script>
+    <script src="./js/vendor/underscore-min.js"></script>
+    <script src="./js/vendor/jquery-min.js"></script>
+    <script src="./js/test.js"></script>
 
   </body>
 </html>

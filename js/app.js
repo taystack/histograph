@@ -153,7 +153,7 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
 
   $scope.nukeHistory = function(event) {
     // debugger;
-    chrome.history.deleteAll();
+    // chrome.history.deleteAll();
   };
 
   $scope.toggleAll = function() {
@@ -228,14 +228,55 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     return tmp.hostname;
   };
 
-  var buildGraphData = function() {
+  var trimStr = function(str) {
+    var len = 45;
+    if (str.length > len) {
+      return str.substring(0, len) + "…";
+    } else { return str; }
+  }
 
-    var trimStr = function(str) {
-      var len = 45;
-      if (str.length > len) {
-        return str.substring(0, len) + "…";
-      } else { return str; }
+  var appendVisits = function(visit) {
+    console.log($scope.data.preparedData)
+  }
+
+  var buildHistoryData = function() {
+    $scope.data.history = {
+      hostnames: {}
     }
+    var maximus = _.max($scope.data.preparedData.children, function(item) {return item.size})
+
+    var watcher = $("#histo-watcher")
+    watcher.height(maximus.size);
+
+    // debugger;
+    _.each($scope.data.preparedData.children, function(item) {
+      console.log(item.color)
+      var hostnameVisit = $('<div class="watch-hostname"></div>');
+      hostnameVisit.height('100%').width(20).css({'background-color': item.color, 'max-height': item.size});
+      // hostnameVisit.css({'background-color': item.color, 'height':item.size, 'width': '20px'});
+      $(this).append(hostnameVisit);
+    }, watcher);
+
+
+    // _.each($scope.data.preparedData, function(item) {
+    //   var hn = getHostname(item.url);
+      // chrome.history.getVisits({'url': item.url}, function(visits) {
+      //   console.log(visits);
+      // })
+      // var hostname = hn === "" ? "File System" : hn;
+      // if (!$scope.data.history.hostnames[hostname]) {
+      //   $scope.data.history.hostnames[hostname] = {
+      //     children: [item],
+      //     size: 1
+      //   };
+      // } else {
+      //   $scope.data.history.hostnames[hostname].children.push(item);
+      //   $scope.data.history.hostnames[hostname].size += item.visitCount;
+      // }
+    // });
+  }
+
+  var buildGraphData = function() {
 
     // Build out the hostnames. This is the base set of data. Each history item
     // is also a child of it's host.
@@ -557,34 +598,48 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
     chrome.history.search({"text": ""}, function(items) {
       $scope.data.items = items;
       buildGraphData();
+      buildHistoryData();
       // buildTree();
-      buildCircleTree();
+      // buildCircleTree();
 
       var path = svg.selectAll("path")
           .data($scope.partition.nodes($scope.data.preparedData))
         .enter().append("path")
           .attr("data-id", function(d) {return d.id_ || d.name})
+          .attr("data-url", function(d) {return d.url || d.name})
           .attr("class", "starburst")
           .attr("d", arc)
           .style("fill", function(d) { return d.color; })
           .on("mouseover", $scope.handleMouseOver)
           .on("mouseleave", $scope.handleMouseOut)
+          // .on("click", function(d) {
+          //   debugger;
+          // });
           .on("click", click);
 
       function click(d) {
         var item = document.querySelector("[data-host='" + d3.event.target.id +"']")
         $scope.toggle[d.name] = false;
         if (d.name === "Histograph") {$scope.toggleAll();}
-        path.transition()
-          .duration(750)
-          .attrTween("d", arcTween(d));
+        switch (d3.event.altKey) {
+          case false:
+            path.transition()
+              .duration(750)
+              .attrTween("d", arcTween(d));
+            break;
+          case true:
+            console.log("invert");
+            path.transition()
+              .duration(750)
+              .attrTween("d", arcTween(d));
+            break;
+
+        }
       }
 
       $scope.$apply();
 
     });
-
-    d3.select(self.frameElement).style("height", height + "px");
 
     // Interpolate the scales!
     function arcTween(d) {
@@ -593,10 +648,12 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
           yr = d3.interpolate(y.range(), [d.y ? 20 : 0, radius]);
       return function(d, i) {
         return i
-            ? function(t) { return arc(d); }
-            : function(t) { x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d); };
+            ? function(t) {return arc(d);}
+            : function(t) {x.domain(xd(t)); y.domain(yd(t)).range(yr(t)); return arc(d);};
       };
     }
+
+    d3.select(self.frameElement).style("height", height + "px");
   }
 
   $scope.handleClick = function(event) {
@@ -616,42 +673,124 @@ histograph.controller("MainCtrl", function($scope, $timeout) {
 
   buildGraph();
 
+  // var handleHistoryChange = function(item) {
+  //   debugger;
+    // if (!piece) {
+    //   var thing = {
+    //     url: hostname,
+    //     size: item.visitCount,
+    //     color: getColor(),
+    //     id_:
+    //   }
+    //   $scope.data.preparedData.children.push(thing);
+    // } else {
+    //   var subPiece = _.find(piece, {url: subDomain});
+    // }
+    // if (item.url.search('?')) {
+
+    // }
+
+    // // Check to see if this is a query
+    //   if ($scope.data.items[item].url.split("?").length > 1) {
+    //     var spName = $scope.data.items[item].url.split(host)[1].split("?");
+    //     if (!$scope.data.hostnames[host].children[spName[0]]) {
+    //       // It is a query of sorts...
+    //       var qObj = {
+    //         children: [],
+    //         color: getCompliment($scope.data.hostnames[host].color),
+    //         name: spName[0],
+    //         size: $scope.data.items[item].visitCount,
+    //         url: spName[0],
+    //         id_: "search"
+    //       };
+    //       // Set the actual history piece here above the query.
+    //       qObj.children.push({
+    //         color: getCompliment($scope.data.hostnames[host].color),
+    //         id_: "id-" + $scope.data.items[item].id,
+    //         name: trimStr("?" + spName[1]),
+    //         size: $scope.data.items[item].visitCount,
+    //         url: "?" + $scope.data.items[item].url
+    //       })
+    //       // Set the query obj on the host.
+    //       $scope.data.hostnames[host].children[qObj.name] = qObj;
+    //     } else {
+    //       // Update the size of this piece.
+    //       $scope.data.hostnames[host].children[spName[0]].size += $scope.data.items[item].visitCount;
+    //       $scope.data.hostnames[host].children[spName[0]].children.push({
+    //         color: getCompliment($scope.data.hostnames[host].color),
+    //         id_: "id-" + $scope.data.items[item].id,
+    //         name: trimStr("?" + spName[1]),
+    //         size: $scope.data.items[item].visitCount,
+    //         url: "?" + $scope.data.items[item].url
+    //       })
+    //     }
+    //   } else { // It's not a query.
+    //     $scope.data.hostnames[host].children["id-" + $scope.data.items[item].id] = {
+    //       color: getCompliment($scope.data.hostnames[host].color),
+    //       name: trimStr($scope.data.items[item].url.split(host)[1]),
+    //       size: $scope.data.items[item].visitCount,
+    //       url: $scope.data.items[item].url.split(host)[1],
+    //       id_: "id-" + $scope.data.items[item].id
+    //     }
+    //     // Update the size of the host.
+    //   }
+  // }
+
   // Chrome history API hooks.
   chrome.history.onVisited.addListener(function (HistoryItem) {
-    var hostname = getHostname(HistoryItem.url);
-    var subDomain = HistoryItem.url.split(hostname)[1];
-    // Check for query.
-    if (subDomain.split("?").length > 1) {
-      var sp = subDomain.split("?");
-      subDomain = "?" + sp[0];
-      var query = sp[1];
-    }
+    // The d3 svg
+    // var SVG = $('[data-url="'+hostname+'"]');
+
+    // handleHistoryChange(HistoryItem);
 
     console.log("HistoryItem", HistoryItem);
+    var hostname = getHostname(HistoryItem.url);
+    var subDomain = HistoryItem.url.split(hostname)[1];
+    var piece = _.find($scope.data.preparedData.children, {url: hostname});
+    if (piece) {
+      piece.size  += 1;
+      piece.value += 1;
 
-    var g = d3.select("#histograph svg g");
-    console.log("g", g);
+      subPiece = _.find(piece.children, {url: subDomain});
+      if (subPiece) {
+        subPiece.size  += 1;
+        subPiece.value += 1;
+      } else {
+        // Create the piece
+        if (subDomain.split('?').length > 1) {
+          // split the query
 
-    debugger;
+        } else {
+          // as a route
+          var subD = {
 
-    var path = g.selectAll("path")
-        .data($scope.partition.nodes(newData))
-      .enter().append("path")
-        .attr("data-id", function(d) {return d.id_ || d.name})
-        .attr("class", "starburst")
-        .attr("d", arc)
-        .style("fill", function(d) { return d.color; })
-        .on("mouseover", $scope.handleMouseOver)
-        .on("mouseleave", $scope.handleMouseOut)
-        .on("click", click);
-
-    function click(d) {
-      var item = document.querySelector("[data-host='" + d3.event.target.id +"']")
-      $scope.toggle[d.name] = false;
-      if (d.name === "Histograph") {$scope.toggleAll();}
-      path.transition()
-        .duration(750)
-        .attrTween("d", arcTween(d));
+          }
+        }
+      }
+    } else {
+      // Create the hostname
     }
+    debugger;
+    // var g = d3.select("#histograph svg g");
+
+    // var path = g.selectAll("path")
+    //     .data($scope.partition.nodes(newData))
+    //   .enter().append("path")
+    //     .attr("data-id", function(d) {return d.id_ || d.name})
+    //     .attr("class", "starburst")
+    //     .attr("d", arc)
+    //     .style("fill", function(d) { return d.color; })
+    //     .on("mouseover", $scope.handleMouseOver)
+    //     .on("mouseleave", $scope.handleMouseOut)
+    //     .on("click", click);
+
+    // function click(d) {
+    //   var item = document.querySelector("[data-host='" + d3.event.target.id +"']")
+    //   $scope.toggle[d.name] = false;
+    //   if (d.name === "Histograph") {$scope.toggleAll();}
+    //   path.transition()
+    //     .duration(750)
+    //     .attrTween("d", arcTween(d));
+    // }
   })
 });

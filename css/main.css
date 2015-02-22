@@ -287,3 +287,38 @@ a:hover {
 .ml {
   margin-left: 20px;
 }
+
+#histo-watcher {
+  display: flex;
+  width: 100vw;
+}
+
+#histo-watcher .watch-hostname {
+  flex-basis: 30px;
+  flex-grow: 0;
+  flex-shrink: 1;
+  transition: all ease-out 150ms;
+  background-color: green;
+}
+
+#hostnames {
+  width: 40vw;
+  overflow: hidden;
+}
+
+#hostnames > .histo-item {
+  margin-left: 0px;
+  padding: 10px 0;
+  opacity: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: all ease-out 200ms;
+  flex-basis: 100%;
+}
+#hostnames > .histo-item:hover {
+  background: rgba(255,255,255,.3);
+}
+#hostnames > .histo-item.loading {
+  margin-left: 100px;
+  opacity: 0;
+}
