@@ -23,8 +23,14 @@
 
         <div class="graph-container">
           <!-- <h1 id="histograph-title">Histograph</h1> -->
+          <form>
+            <label><input type="radio" name="mode" value="size"> Size</label>
+            <label><input type="radio" name="mode" value="count" checked> Count</label>
+            <button ng-click="saveSnapshot($event)">Save snapshot</button>
+          </form>
           <div id="histograph"></div>
           <div id="histo-circle-tree"></div>
+          <div id="histo-lines"></div>
           <!-- <p>Browser history visualization tool.</p> -->
         </div>
 
@@ -50,45 +56,6 @@
           </div>
           <li class="histo-item" ng-repeat="item in data.items">{{item.title}} - {{item.url}}</li>
         </ul>
-<!--
-        <ul id="hostnames">
-          <li ng-repeat="item in data.preparedData.children | orderBy:'size':true"
-              ng-hide="{{ toggleParent[item.name] }}">
-            <div data-host="{{ item.name }}" class="host-container" ng-click="handleClick($event)">
-              <div class="filthy">
-                <div class="rotten">
-                  <div class="backer"></div>
-                  <img src="http://www.google.com/s2/favicons?domain={{ item.name }}" alt="">
-                  <div class="color-legend" style="background: {{ item.color }}"></div>
-                </div>
-                <span href="{{ item.name }}" class="hostname" id="{{ item.name }}">{{ item.name }}</span>
-              </div>
-              <span class="visit-count">{{ item.size }}</span>
-            </div>
-            <ul class="subdomains" ng-hide="{{toggle[item.name]}}">
-              <li class="sub-item"
-                  id="{{ val.id_ }}"
-                  ng-repeat="(idx, val) in item.children">
-                <div class="list-item">
-                  <div class="sub-color" style="background: {{ val.color }}"></div>
-                  <span class="sub-name">{{ val.name }}</span>
-                  <span class="sub-visits">{{ val.size }}</span>
-                </div>
-                <ul class="query-items">
-                  <li class="query-item"
-                      ng-repeat="(i, v) in val.children">
-                    <div class="filthy">
-                      <div class="query-color" style="background: {{ v.color }}"></div>
-                      <span class="something">{{ v.name }}</span>
-                    </div>
-                    <span class="something">{{ v.size }}</span>
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-        </ul>
- -->
       </div>
 
 
