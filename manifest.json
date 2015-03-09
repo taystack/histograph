@@ -18,7 +18,8 @@
   },
   "permissions": [
     "history",
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "background": {
     "scripts": ["js/vendor/angular.min.js",
